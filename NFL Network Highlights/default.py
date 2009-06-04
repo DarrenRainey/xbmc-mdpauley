@@ -2,7 +2,7 @@
 __plugin__ = "NFL Network Highlights"
 __author__ = "MDPauley"
 __url__ = ""
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 import urllib, urllib2, re
 import string, os, time, datetime
@@ -50,12 +50,12 @@ def mkTeamDir():
         code=re.sub('\t',' ',code)
         code=re.sub('  ','',code)
         response.close()
-	code=code.split('<select class=\"advFields\" name=\"advancedTeam\">')
-	code=code[1].split('</select>')
-	p=re.compile('<option value=\"(.+?)\">(.+?)</option>')
+	code=code.split('<img src=\"http://static.nfl.com/static/content//public/image/videos/navigation/teams.png\" alt=\"\" /></div><div class=\"channels\">')
+	code=code[1].split('</ul></div>')
+	p=re.compile('<li><a href=\"(.+?)\">(.+?)</a></li> ')
 	match=p.findall(code[0])
         for teamcode, teamname in match:
-                addDir(teamname,'http://www.nfl.com/ajax/videos?categoryId=teams&teamId=' + teamcode, 50 , '')	
+                addDir(teamname,'http://www.nfl.com' + teamcode, 60 , '')	
         
 """
 	INDEX()
@@ -65,8 +65,7 @@ def listvideos(data):
 	res=[]
 	#this is where the fun starts, so we'll print some text here to
 	#locate this section of code in the boxee debug logs.
-	print '**listvideos()'
-		
+	print '**listvideos()'		
         req = urllib2.Request(data)
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
         response = urllib2.urlopen(req)
@@ -81,6 +80,49 @@ def listvideos(data):
         for filePath, fileName, controlPanelImage, mainTitle, captionBlurb, thumbRunTime in res:
 		videoinfo = {'Title': mainTitle, "Date": "2009-01-01", 'Plot': captionBlurb, 'Genre': 'Sports', 'Duration': thumbRunTime}
                 addLink(filePath + fileName, controlPanelImage, mainTitle, videoinfo)
+
+"""
+	INDEX()
+	Parses the data to create the filelist
+"""
+def listteamvideos(data):
+	res=[]
+	#this is where the fun starts, so we'll print some text here to
+	#locate this section of code in the boxee debug logs.
+	print '**listteamvideos()'
+        req = urllib2.Request(data)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
+        response = urllib2.urlopen(req)
+        link=response.read()
+        code=re.sub('\r','',link)
+        code=re.sub('\n',' ',code)
+        code=re.sub('\t',' ',code)
+        code=re.sub('  ','',code)
+        response.close()
+        p=re.compile('{ briefHeadline:\"(.+?)\", captionBlurb: \"(.+?)\", date: \"(.+?)\", videoCMSID: \"(.+?)\", runTime:\"(.+?)\", videoDetailUrl: \"(.+?)\", smallImage: \"(.+?)", xSmallImage:\"(.+?)\"}')
+        match=p.findall(code)
+        for briefHeadline, captionBlurb, date, videoCMSID, runTime, videoDetailUrl, smallImage, xSmallImage in match:
+        	res.append((briefHeadline, captionBlurb, date, videoCMSID, runTime, videoDetailUrl, smallImage, xSmallImage))     
+        	req = urllib2.Request('http://www.nfl.com' + videoDetailUrl)
+		req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
+		response = urllib2.urlopen(req)
+		link2=response.read()
+		code2=re.sub('&#39;','',link2)
+		code2=re.sub('&amp;','&',code2)
+		code2=re.sub('\r','',code2)
+		code2=re.sub('\n',' ',code2)
+		code2=re.sub('\t',' ',code2)
+		code2=re.sub('  ',' ',code2)
+		code2=re.sub('  ',' ',code2)
+		response.close()
+		code2=code2.split('<!-- VIDEO DETAILS:')
+		code2=code2[1].split(' -->.+?<!-- BEGIN PAGE widget/video/carousel -->')
+		p=re.compile('Video URL:  (.+?) Run Time:')
+		match2=p.findall(code2[0])
+		for vURL in match2:
+			videoinfo = {'Title': captionBlurb, "Date": "n/a", 'Plot': briefHeadline, 'Genre': 'Sports', 'Duration': "n/a"}
+			addLink(vURL, smallImage, captionBlurb, videoinfo)  
+
 
 def listQvideos(data):
 	res=[]
@@ -190,5 +232,7 @@ elif mode==25:
     Qsearch('Search')
 elif mode==50:
     listvideos(url)
+elif mode==60:
+    listteamvideos(url)
 #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE)
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
