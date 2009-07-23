@@ -1,5 +1,5 @@
 
-__plugin__ = "FoodNetwork"
+__plugin__ = "HGTV"
 __author__ = "MDPauley"
 __url__ = ""
 __version__ = "0.7.5"
@@ -10,8 +10,9 @@ import xbmc, xbmcgui, xbmcplugin
 
 xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_NONE)
 
-def catsInitial():
-        req = urllib2.Request('http://www.foodnetwork.com/video-library/index.html')
+def getXML(data):
+        print data
+        req = urllib2.Request(data)
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
         response = urllib2.urlopen(req)
         link=response.read()	
@@ -20,19 +21,35 @@ def catsInitial():
         code=re.sub('\t',' ',code)
         code=re.sub('  ','',code)
         response.close()	
-	code=code.split('<h3>Video Channels</h3>')
-	p=re.compile('<h4>\"(.+?)\"*Full Episodes</h4><div id=\"chnl-(.+?)\" class=\"crslFour92 crsl-w\">')
+	p=re.compile('#chnl-(.+?)\"\).dpl')
+	match=p.findall(code)
+	for showcode in match:
+		return showcode
+
+def catsInitial():
+        req = urllib2.Request('http://www.hgtv.com/full-episodes/package/index.html')
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
+        response = urllib2.urlopen(req)
+        link=response.read()	
+        code=re.sub('\r','',link)
+        code=re.sub('\n',' ',code)
+        code=re.sub('\t',' ',code)
+        code=re.sub('  ','',code)
+        response.close()	
+	code=code.split('<h1 class=\"topic-title\">Full Episodes</h1>')
+	p=re.compile('<h2>(.+?)</h2><a class=\"banner\" href=\".+?\"> <img src=\".+?\" alt=\".+?\" /> </a><p>.+?</p><p class=\"cta\"> <a href=\"/hgtv(.+?)/videos/index.html\" class=\"button\">')
 	match=p.findall(code[1])
-        for showname, showcode in match:
+        for showname, url in match:
                 showname=re.sub('\"','',showname)
-                addDir(showname,'http://www.foodnetwork.com/food/channel/xml/0,,' + showcode + ',00.xml', 50 , '')	
-	        
+		addDir(showname,'http://www.hgtv.com/hgtv'+url+'/videos/index.html', 50 , '')	
+                
 """
 	INDEX()
 	Parses the data to create the filelist
 """
 def listvideos(data):
 	res=[]
+	data = 'http://www.hgtv.com/hgtv/channel/xml/0,,'+getXML(data)+',00.xml'
 	#this is where the fun starts, so we'll print some text here to
 	#locate this section of code in the boxee debug logs.
 	print '**listvideos()'	
@@ -52,12 +69,10 @@ def listvideos(data):
         for mainTitle, thumbRunTime, network, filePath, controlPanelImage, captionBlurb in match:
                 filePath=re.sub('http','mmsh',filePath)
                 res.append((filePath+'?MSWMExt=.asf', mainTitle, controlPanelImage, mainTitle, captionBlurb, thumbRunTime))   
-                print filePath
         for mainTitle, thumbRunTime, network, filePath, controlPanelImage, captionBlurb in match:
 		filePath=re.sub('http','mmsh',filePath)
 		videoinfo = {'Title': mainTitle, "Date": "2009-01-01", 'Plot': captionBlurb, 'Genre': 'Food', 'Duration': thumbRunTime}
                 addLink(filePath+'?MSWMExt=.asf', controlPanelImage, mainTitle, videoinfo)
-                print filePath
 
 """
 	addLink()
