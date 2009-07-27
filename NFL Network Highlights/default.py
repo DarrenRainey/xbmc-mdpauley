@@ -2,7 +2,7 @@
 __plugin__ = "NFL Network Highlights"
 __author__ = "MDPauley"
 __url__ = ""
-__version__ = "0.7.5"
+__version__ = "0.7.6"
 
 import urllib, urllib2, re
 import string, os, time, datetime
@@ -140,6 +140,7 @@ def catEvents():
 
 def listvideos(data):
 	res=[]
+	print 'http://www.nfl.com/ajax/videos/v2?channelId=' + data
 	#this is where the fun starts, so we'll print some text here to
 	print '**listvideos()'
 		
@@ -150,7 +151,7 @@ def listvideos(data):
         code=re.sub('&#39;','',link)
         code2=re.sub('&amp;','&',code)
         response.close()
-        p=re.compile('\"videoCMSID\":\"(.+?)\".+?,\"smallImage\":\"(.+?)\".+?,\"videoDetailUrl\":\"(.+?)\",')
+        p=re.compile('\"videoCMSID\":\"(.+?)\".+?,\"smallImage\":\"(.+?)\",\"videoDetailUrl\":\"(.+?)\"')
         match=p.findall(code2)
         for videoCMSID, smallImage, videoDetailUrl in match:   
 		sql = "SELECT * from nfl_videos WHERE videoCMSID = '" + videoCMSID + "'"
