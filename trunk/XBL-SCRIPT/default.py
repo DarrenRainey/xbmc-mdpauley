@@ -21,8 +21,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-#xbLive = LiveConnect('mpauley73@hotmail.com', '4revenge', os.getcwd())
-
 import ConfigParser
 from ConfigParser import NoOptionError
 import os
