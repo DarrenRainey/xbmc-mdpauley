@@ -56,12 +56,13 @@ def listvideos(data):
 		link2=response.read()
 		code2=re.sub('&#39;','',link2)
 		code2=re.sub('&amp;','&',code2)
-		code2=re.sub('\r','',code2)
+		code2=re.sub('\r',' ',code2)
 		code2=re.sub('\n',' ',code2)
 		code2=re.sub('\t',' ',code2)
-		code2=re.sub('  ','',code2)
+		code2=re.sub('   ',' ',code2)
+		code2=re.sub('  ',' ',code2)
 		response.close()
-		p=re.compile('clip: { url: \'(.+?)\',')
+		p=re.compile('clip:.+?{.+?url: \'(.+?)\',')
 		match2=p.findall(code2)
 		for var7 in match2:
 			videoinfo = {'Title': var4, "Date": "2009-01-01", 'Plot': var4, 'Genre': 'adult'}
