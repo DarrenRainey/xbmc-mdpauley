@@ -2,7 +2,7 @@
 __plugin__ = "HGTV"
 __author__ = "MDPauley"
 __url__ = ""
-__version__ = "0.7.5"
+__version__ = "0.7.6"
 
 import urllib, urllib2, re
 import string, os, time, datetime
@@ -37,7 +37,8 @@ def catsInitial():
         code=re.sub('  ','',code)
         response.close()	
 	code=code.split('<h1 class=\"topic-title\">Full Episodes</h1>')
-	p=re.compile('<h2>(.+?)</h2><a class=\"banner\" href=\".+?\"> <img src=\".+?\" alt=\".+?\" /> </a><p>.+?</p><p class=\"cta\"> <a href=\"/hgtv(.+?)/videos/index.html\" class=\"button\">')
+	#p=re.compile('<h2>(.+?)</h2><a class=\"banner\" href=\".+?\"> <img src=\".+?\" alt=\".+?\" /> </a><p>.+?</p><p class=\"cta\"> <a href=\"/hgtv(.+?)/videos/index.html\" class=\"button\">')
+	p=re.compile('<h2>(.+?)</h2>.+?<a class=\"banner\" href=\".+?\">.+?<a href=\"/hgtv(.+?)/videos/index.html\" class=\"button\">')
 	match=p.findall(code[1])
         for showname, url in match:
                 showname=re.sub('\"','',showname)
